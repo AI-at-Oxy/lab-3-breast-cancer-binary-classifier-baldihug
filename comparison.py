@@ -14,32 +14,34 @@ takes one feature though.
 import numpy as np
 from sklearn.isotonic import IsotonicRegression
 from sklearn.metrics import accuracy_score
-from binary_classification import load_data
+from sklearn.datasets import load_breast_cancer
 
 
-def train_isotonic():
-    # Load dataset
-    X_train, X_test, y_train, y_test, feature_names = load_data()
+def main():
+    # Load breast cancer dataset from sklearn
+    data = load_breast_cancer()
+    X = data.data
+    y = data.target
 
-    # Convert torch tensors to numpy
-    X_train = X_train.numpy()
-    X_test = X_test.numpy()
-    y_train = y_train.numpy()
-    y_test = y_test.numpy()
+    # Use 1 feature
+    X_1d = X[:, 0]
 
-    # IsotonicRegression takes 1d input (so using first feature only)
-    X_train_1d = X_train[:, 0]
-    X_test_1d = X_test[:, 0]
+    # Simple train/test split
+    split = int(0.8 * len(X_1d))
+    X_train, X_test = X_1d[:split], X_1d[split:]
+    y_train, y_test = y[:split], y[split:]
 
-    # model
-    iso_model = IsotonicRegression(out_of_bounds="clip")
-    iso_model.fit(X_train_1d, y_train)
+    # Create isotonic regression model
+    model = IsotonicRegression(out_of_bounds="clip")
+
+    # Fit
+    model.fit(X_train, y_train)
 
     # Predict
-    y_train_pred = iso_model.predict(X_train_1d)
-    y_test_pred = iso_model.predict(X_test_1d)
+    y_train_pred = model.predict(X_train)
+    y_test_pred = model.predict(X_test)
 
-    # Convert regression output to binary class
+    # Convert regression output to binary labels
     y_train_pred_class = (y_train_pred >= 0.5).astype(int)
     y_test_pred_class = (y_test_pred >= 0.5).astype(int)
 
@@ -47,16 +49,17 @@ def train_isotonic():
     train_acc = accuracy_score(y_train, y_train_pred_class)
     test_acc = accuracy_score(y_test, y_test_pred_class)
 
+    print(f"Isotonic Regression Results")
     print(f"Training Accuracy: {train_acc:.3f}")
     print(f"Test Accuracy:     {test_acc:.3f}")
 
-    return iso_model
 
-model = train_isotonic()
+if __name__ == "__main__":
+    main()
 
 """
 The isotonic regression model performed much poorer than the logistic 
-regression model (63% training and test accuracy for isotonic compared
+regression model (around 63% training and test accuracy for isotonic compared
 to 99% for logistic). I think it probably has to do with the number of
 features being reduced, but nonetheless I still think it performed much
 better than expected (still more than half accurate with over 90% less features).
