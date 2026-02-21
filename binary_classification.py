@@ -28,7 +28,8 @@ def sigmoid(z):
     Returns:
         scalar output in (0, 1)
     """
-    raise NotImplementedError("TODO: implement sigmoid")
+    return torch.clamp(1 / (1 + torch.exp(-z)), 1e-7, 1 - 1e-7)
+    #raise NotImplementedError("TODO: implement sigmoid")
 
 
 def forward(x, w, b):
@@ -46,9 +47,10 @@ def forward(x, w, b):
     Returns:
         scalar prediction in (0, 1)
     """
-    z = None  # TODO: compute z = w · x + b
-    y_hat = None  # TODO: apply sigmoid to z
-    raise NotImplementedError("TODO: implement forward pass")
+    z = torch.dot(w,x) + b  # TODO: compute z = w · x + b
+    y_hat = sigmoid(z)  # TODO: apply sigmoid to z
+    return y_hat
+    #raise NotImplementedError("TODO: implement forward pass")
 
 
 def compute_loss(y, y_hat):
@@ -64,7 +66,8 @@ def compute_loss(y, y_hat):
     Returns:
         scalar loss
     """
-    raise NotImplementedError("TODO: implement compute_loss")
+    return 0.5*(y_hat-y)**2
+    #raise NotImplementedError("TODO: implement compute_loss")
 
 
 def compute_gradients(x, y, y_hat):
@@ -87,14 +90,16 @@ def compute_gradients(x, y, y_hat):
         dw: (n,) gradient for weights
         db: scalar gradient for bias
     """
-    error = None  # TODO: compute error = ŷ - y
-    sigmoid_deriv = None  # TODO: compute sigmoid derivative = ŷ(1 - ŷ)
-    delta = None  # TODO: compute δ = error × sigmoid_deriv
+    error = y_hat-y  # TODO: compute error = ŷ - y
+    sigmoid_deriv = y_hat*(1-y_hat)  # TODO: compute sigmoid derivative = ŷ(1 - ŷ)
+    delta = error*sigmoid_deriv  # TODO: compute δ = error × sigmoid_deriv
 
-    dw = None  # TODO: compute ∂L/∂w = δ × x
-    db = None  # TODO: compute ∂L/∂b = δ
+    dw = delta * x  # TODO: compute ∂L/∂w = δ × x
+    db = delta #TODO: compute ∂L/∂b = δ
+    
+    return dw, db
 
-    raise NotImplementedError("TODO: implement compute_gradients")
+    #raise NotImplementedError("TODO: implement compute_gradients")
 
 
 # =============================================================================
@@ -134,52 +139,39 @@ def load_data():
 def train(X_train, y_train, alpha=0.01, n_epochs=100, verbose=True):
     """
     Train the model using stochastic gradient descent.
-    
-    Args:
-        X_train: (m, n) training features
-        y_train: (m,) training labels
-        alpha: learning rate
-        n_epochs: number of passes through the data
-        verbose: print progress
-    
-    Returns:
-        w: learned weights
-        b: learned bias
-        losses: list of average loss per epoch
     """
-    # Initialize parameters
     n_features = X_train.shape[1]
     w = torch.zeros(n_features)
     b = torch.tensor(0.0)
-    
+
     losses = []
-    
+
     for epoch in range(n_epochs):
         epoch_loss = 0.0
-        
+
         for i in range(len(y_train)):
             x_i = X_train[i]
             y_i = y_train[i]
-            
-            # Forward pass: compute prediction for this sample
-            y_hat = None  # TODO: call forward()
 
-            # Compute loss
+            # Forward pass
+            y_hat = forward(x_i, w, b)
+
+            # Loss
             epoch_loss += compute_loss(y_i, y_hat).item()
 
-            # Compute gradients
-            dw, db = None, None  # TODO: call compute_gradients()
+            # Gradients
+            dw, db = compute_gradients(x_i, y_i, y_hat)
 
-            # Update parameters using gradient descent
-            w = None  # TODO: update w
-            b = None  # TODO: update b
-        
+            # Gradient descent update
+            w = w - alpha * dw
+            b = b - alpha * db
+
         avg_loss = epoch_loss / len(y_train)
         losses.append(avg_loss)
-        
+
         if verbose and epoch % 10 == 0:
             print(f'Epoch {epoch:3d}, Loss: {avg_loss:.4f}')
-    
+
     return w, b, losses
 
 
