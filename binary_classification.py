@@ -17,90 +17,27 @@ from sklearn.model_selection import train_test_split
 # =============================================================================
 
 def sigmoid(z):
-    """
-    Sigmoid activation function.
-    
-    σ(z) = 1 / (1 + e^(-z))
-    
-    Args:
-        z: scalar input (torch.Tensor)
-    
-    Returns:
-        scalar output in (0, 1)
-    """
-    return torch.clamp(1 / (1 + torch.exp(-z)), 1e-7, 1 - 1e-7)
-    #raise NotImplementedError("TODO: implement sigmoid")
+    return torch.clamp(torch.sigmoid(z), 1e-7, 1 - 1e-7)
 
 
 def forward(x, w, b):
-    """
-    Forward pass for one sample.
-    
-    z = w · x + b
-    ŷ = σ(z)
-    
-    Args:
-        x: (n,) feature vector for one sample
-        w: (n,) weight vector
-        b: scalar bias
-    
-    Returns:
-        scalar prediction in (0, 1)
-    """
-    z = torch.dot(w,x) + b  # TODO: compute z = w · x + b
-    y_hat = sigmoid(z)  # TODO: apply sigmoid to z
+    z = torch.dot(w, x) + b
+    y_hat = sigmoid(z)
     return y_hat
-    #raise NotImplementedError("TODO: implement forward pass")
 
 
 def compute_loss(y, y_hat):
-    """
-    Mean squared error loss for one sample.
-    
-    L = (1/2)(ŷ - y)²
-    
-    Args:
-        y: scalar true label (0 or 1)
-        y_hat: scalar prediction
-    
-    Returns:
-        scalar loss
-    """
-    return 0.5*(y_hat-y)**2
-    #raise NotImplementedError("TODO: implement compute_loss")
-
+    return 0.5 * (y_hat - y) ** 2
 
 def compute_gradients(x, y, y_hat):
-    """
-    Compute gradients for one sample using the chain rule.
-    
-    error = ŷ - y
-    sigmoid_deriv = ŷ(1 - ŷ)
-    δ = error × sigmoid_deriv
-    
-    ∂L/∂w = δ × x
-    ∂L/∂b = δ
-    
-    Args:
-        x: (n,) input features for one sample
-        y: scalar true label
-        y_hat: scalar prediction
-    
-    Returns:
-        dw: (n,) gradient for weights
-        db: scalar gradient for bias
-    """
-    error = y_hat-y  # TODO: compute error = ŷ - y
-    sigmoid_deriv = y_hat*(1-y_hat)  # TODO: compute sigmoid derivative = ŷ(1 - ŷ)
-    delta = error*sigmoid_deriv  # TODO: compute δ = error × sigmoid_deriv
+    error = y_hat - y
+    sigmoid_deriv = y_hat * (1 - y_hat)
+    delta = error * sigmoid_deriv
 
-    dw = delta * x  # TODO: compute ∂L/∂w = δ × x
-    db = delta #TODO: compute ∂L/∂b = δ
-    
+    dw = delta * x
+    db = delta
+
     return dw, db
-
-    #raise NotImplementedError("TODO: implement compute_gradients")
-
 
 # =============================================================================
 # PART 2: Data Loading and Preprocessing (provided)
